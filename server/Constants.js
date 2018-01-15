@@ -1,0 +1,1 @@
+const USER_NAME_IS_EXISED = 1000;
