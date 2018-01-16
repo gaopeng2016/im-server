@@ -5,13 +5,21 @@ const views = require('koa-views')
 const koaStatic = require('koa-static')
 const bodyParser = require('koa-bodyparser')
 const koaLogger = require('koa-logger')
+const jwtKoa = require('koa-jwt')
 
 const config = require('./../config')
 const routers = require('./routers/index')
 
 const app = new Koa()
 const server = require('http').createServer(app.callback());
-const io = require('socket.io')(server);
+const io = require('socket.io')(server,{
+    serveClient: (config.env === 'production') ? false : true,
+    pingInterval: 10000,//请求间隔时间(ms)
+    pingTimeout: 5000,//连接超时时间,超时后自动关闭(ms)
+    cookie: false,//禁用缓存
+});
+console.log(process.env.NODE_ENV);
+const testSocketHandle = require('./controllers/TestSocketController');
 
 
 // 配置控制台日志中间件
@@ -32,6 +40,10 @@ app.use(async function(ctx, next){
 // 配置ctx.body解析中间件
 app.use(bodyParser())
 
+app.use(jwtKoa({secret:config.secret}).unless({
+    path: ['/api/login'] //数组中的路径不需要通过jwt验证
+}))
+
 app.use(convert(koaStatic(
     path.join(__dirname , './../static')
 )))
@@ -43,12 +55,10 @@ app.use(views(path.join(__dirname, './views'), {
 
 // 初始化路由中间件
 app.use(routers.routes()).use(routers.allowedMethods())
+let test = io.of("/test")
+test.on('connection', function(socket){
+    testSocketHandle(socket, test);
 
-io.on('connection', function(socket){
-    console.log(socket.id + ' 有人链接');
-    socket.on('disconnect', function(socket){
-        console.log(socket.id + ' 断开');
-    });
 });
 
 
