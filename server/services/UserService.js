@@ -1,5 +1,6 @@
 const db = require('../utils/db');
 const CommonException = require("../exception/CommonException");
+const JWTUtil = require('../utils/JWTUtil');
 
 class UserService {
     /**
@@ -19,8 +20,9 @@ class UserService {
 
     static async getUserByUsername (userName){
         if(userName){
-            let sql = 'select * from user where user_name = ?';
+            let sql = 'select * from user where userName = ?';
             let dbData = await db.query(sql, [userName]);
+
             if(dbData.length > 1){
                 throw new CommonException(1, '用户名已经有重复的！');
             }
@@ -29,6 +31,24 @@ class UserService {
             throw new CommonException(1, '缺少参数 userName');
         }
     };
+
+    static async userLogin (loginInfo) {
+        if(!loginInfo || !loginInfo.userName || !loginInfo.password){
+            throw new CommonException(501, "参数校验失败");
+        }
+        const dbUser = await this.getUserByUsername(loginInfo.userName);
+
+        if(dbUser.password === loginInfo.password){
+            const payload = {
+                userId: dbUser.userId,
+                userName:dbUser.userName,
+                email: dbUser.email
+            };
+            return JWTUtil.sign(payload);
+        }
+
+        throw new CommonException(502, "用户名或密码不正确");
+    }
 }
 
 module.exports = UserService;

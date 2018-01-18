@@ -22,6 +22,11 @@
 </body>
 <script src="/socket.io/socket.io.js"></script>
 <script>
-    var socket = io("/test");
+    io("http://localhost:3001/test" ,{
+        transports:['websocket'],
+        query: {token:111}
+    }).on("message", function(data){
+        console.log(data);
+    })
 </script>
 </html>

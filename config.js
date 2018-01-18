@@ -6,11 +6,11 @@ const config = {
     secret:'test jwt',
     // 数据库配置
     database: {
-        DATABASE: 'koa_demo',
+        DATABASE: 'im',
         USERNAME: 'root',
         PASSWORD: '13555486248',
         PORT: '3306',
-        HOST: 'localhost'
+        HOST: '39.106.127.129'
     }
 }
 

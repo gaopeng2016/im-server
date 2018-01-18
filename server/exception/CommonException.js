@@ -3,7 +3,6 @@ class CommonException {
         this.code = code;
         this.message = message;
     }
-
 }
 
 module.exports = CommonException;

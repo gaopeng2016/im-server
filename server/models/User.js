@@ -11,18 +11,7 @@ class User {
         this.email = email;
     }
 
-    userId;
-    userName;
-    password;
-    realName;
-    email;
-
-    getUserId() {
-        return this.userId;
-    }
-
-    setUserId(userId){
-        this.userId = userId;
-    }
 
 }
+
+module.exports = User;
