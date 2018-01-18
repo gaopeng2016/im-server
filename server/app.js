@@ -17,11 +17,12 @@ const io = require('socket.io')(server,{
     pingInterval: 10000,//请求间隔时间(ms)
     pingTimeout: 5000,//连接超时时间,超时后自动关闭(ms)
     cookie: false,//禁用缓存
-    // allowRequest: (req, cb) => {
-    //     console.log(req._query);
-    //     // if (req._query && req._query.token === 'abc') return cb(null, true)
-    //     // cb(null, false)
-    // }
+    allowRequest: (req, cb) => {
+        console.log(req._query.token);
+        // if (req._query && req._query.token === 'abc') return cb(null, true)
+        // cb(null, false)
+        cb(null, true);
+    }
 });
 const testSocketHandle = require('./controllers/TestSocketController');
 
@@ -61,7 +62,7 @@ app.use(views(path.join(__dirname, './views'), {
 // 初始化路由中间件
 app.use(routers.routes()).use(routers.allowedMethods());
 
-// socket 更改全局socketid 生成策略
+// // socket 更改全局socketid 生成策略
 // io.engine.generateId = (req) => {
 //     return "custom:id:" + 1; // custom id must be unique
 // };
@@ -71,10 +72,12 @@ test.use((socket, next) => {
     // return  new Error('Authentication error')
     // return next();
 
-   let token = socket.handshake.query.token;
-   if(token !== "111"){
-       throw  new Error('Authentication error')
-   }
+   // let token = socket.handshake.query.token;
+   // if(token !== "111"){
+   //     throw  new Error('Authentication error')
+   // }
+
+    console.log('中间件');
    next()
 }).on('connection', function(socket){
     testSocketHandle(socket, test);

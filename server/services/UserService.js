@@ -1,6 +1,7 @@
 const db = require('../utils/db');
 const CommonException = require("../exception/CommonException");
 const JWTUtil = require('../utils/JWTUtil');
+const MessageInfo = require('../utils/MessageInfo');
 
 class UserService {
     /**
@@ -38,13 +39,14 @@ class UserService {
         }
         const dbUser = await this.getUserByUsername(loginInfo.userName);
 
-        if(dbUser.password === loginInfo.password){
+        if(dbUser && dbUser.password === loginInfo.password){
             const payload = {
                 userId: dbUser.userId,
                 userName:dbUser.userName,
                 email: dbUser.email
             };
-            return JWTUtil.sign(payload);
+            const token = JWTUtil.sign(payload);
+            return new MessageInfo('登录成功', token);
         }
 
         throw new CommonException(502, "用户名或密码不正确");
