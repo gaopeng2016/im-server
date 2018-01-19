@@ -24,9 +24,29 @@
 <script>
     io("http://localhost:3001/test" ,{
         transports:['websocket'],
-        query: {token:111}
+        query: {token:111},
+//        autoConnect: false
     }).on("message", function(data){
         console.log(data);
+    }).on('connect', () => {
+        console.log('已成功连接到服务器')
+    }).on('connect_error', function (e) {
+        console.log(e);
+    }).on('disconnect',function (reason ) {
+        //reason （字符串） 服务器或客户端丢失连接的原因
+        console.log('和服务器断开连接', reason)
+    }).on('reconnect', (attempt) => {
+        //attempt （字符串） 重连次数
+        console.log('重新和服务器建立连接' ,attempt )
+    }).on('reconnect_attempt', (attempt) => {
+        console.log('成功重新连接', attempt)
+    }).on('reconnecting', (attempt) => {
+        //尝试重连时触发时间处理器
+        //attempt （字符串） 尝试重连次数
+        console.log('尝试重新连接', attempt)
+    }).on('reconnect_error', (error) => {
+        //重连错误时触发时间处理器
+        console.log('重新连接错误',error)
     })
 </script>
 </html>

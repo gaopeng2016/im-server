@@ -51,6 +51,24 @@ class UserService {
 
         throw new CommonException(502, "用户名或密码不正确");
     }
+
+    static async findUserRelation (userId) {
+        if(userId){
+            let sql = 'select u.* from user u where u.userId in ( select f.friendId from friend  f where f.userId = ? )';
+            let dbData = await db.query(sql, [userId]);
+            return dbData;
+        }
+        return null;
+    }
+
+    static async findGroupRelation (userId) {
+        if(userId){
+            let sql = 'select g.* from group_user gu LEFT JOIN `group` g on gu.groupId = g.groupId where gu.userId = ?';
+            let dbData = await db.query(sql, [userId]);
+            return dbData;
+        }
+        return null;
+    }
 }
 
 module.exports = UserService;

@@ -7,7 +7,7 @@ class JWTUtil {
 
         try{
            let token = jwt.sign(payload, config.secret, { expiresIn: '1h' });
-            return token;
+           return token;
         } catch (e) {
             throw new CommonException(2, e.message);
         }

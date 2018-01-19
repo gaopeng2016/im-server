@@ -9,6 +9,18 @@ const jwtKoa = require('koa-jwt');
 
 const config = require('./../config');
 const routers = require('./routers/index');
+const redis = require('redis');
+const redisStore = require('koa-redis');
+
+const testSocketHandle = require('./controllers/TestSocketController');
+const JWTUtil = require('./utils/JWTUtil');
+
+
+// 注意: client默认是异步callback方式调用;
+// store.client是经过了co-redis包装,返回Promise, 在koa里面用yield异步编程比较方便
+const client = redis.createClient(6379, "39.106.127.129");
+const options = {client: client, db: 1};
+const store = redisStore(options);
 
 const app = new Koa();
 const server = require('http').createServer(app.callback());
@@ -17,14 +29,20 @@ const io = require('socket.io')(server,{
     pingInterval: 10000,//请求间隔时间(ms)
     pingTimeout: 5000,//连接超时时间,超时后自动关闭(ms)
     cookie: false,//禁用缓存
-    allowRequest: (req, cb) => {
-        console.log(req._query.token);
-        // if (req._query && req._query.token === 'abc') return cb(null, true)
-        // cb(null, false)
-        cb(null, true);
+    allowRequest: async (req, cb) => {
+        let token = req._query.token;
+        if(token){
+            try{
+                let payload = await JWTUtil.verify(token);
+                if(payload) return cb(null, true);
+            } catch (e) {
+                cb('xxx', false)
+            }
+        }
+        cb(null, false)
+        // cb(null,true)
     }
 });
-const testSocketHandle = require('./controllers/TestSocketController');
 
 
 // 配置控制台日志中间件
@@ -67,24 +85,9 @@ app.use(routers.routes()).use(routers.allowedMethods());
 //     return "custom:id:" + 1; // custom id must be unique
 // };
 let test = io.of("/test");
-test.use((socket, next) => {
-    // if (socket.request.headers.cookie) return next()
-    // return  new Error('Authentication error')
-    // return next();
-
-   // let token = socket.handshake.query.token;
-   // if(token !== "111"){
-   //     throw  new Error('Authentication error')
-   // }
-
-    console.log('中间件');
-   next()
-}).on('connection', function(socket){
-    testSocketHandle(socket, test);
+test.on('connection', function(socket){
+    testSocketHandle(socket, test, store.client);
 });
-
-
-
 
 // 监听启动端口
 server.listen( config.port );
